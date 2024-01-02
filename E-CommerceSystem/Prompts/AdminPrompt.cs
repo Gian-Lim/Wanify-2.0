@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -23,6 +23,9 @@ namespace E_CommerceSystem
         MySqlConnection conn;
         Products product;
 
+        public static Boolean showProdPanel { get; set; } // Gian888
+        public static Boolean showOrdPanel { get; set; } // Gian888
+
         GunaChart salesAnalyticsChart;
         GunaChart topSoldProduct;
         public AdminPrompt()
@@ -34,7 +37,6 @@ namespace E_CommerceSystem
         {
             InitializeComponent();
             this.UserID = user_id;
-
         }
 
         public string UserID { get; set; }
@@ -43,6 +45,8 @@ namespace E_CommerceSystem
         {
 
         }
+
+
         private void fetchProductsByCateg()
         {
             product_FlowLayout.Controls.Clear();
@@ -119,6 +123,8 @@ namespace E_CommerceSystem
 
                     product_FlowLayout.Controls.Add(product);
                 }
+                /*   conn.Close();*/
+                conn.Close();
             }
             catch (Exception ex)
             {
@@ -136,15 +142,9 @@ namespace E_CommerceSystem
 
             this.salesAnalyticsChart = salaes_chart;
             admin_dashboard_panel.Controls.Add(this.salesAnalyticsChart);
-
+            this.topSoldProduct = new GunaChart();
             //selling chart
 
-            this.topSoldProduct = new GunaChart();
-            best_selling_panel.Controls.Add(this.topSoldProduct);
-            topSoldProduct.Width = best_selling_panel.Width;
-            topSoldProduct.Height = best_selling_panel.Height;
-            topSoldProduct.Animation.Easing = Easing.EaseOutQuart;
-            topSoldProduct.Animation.Duration = 800;
             topSoldProduct.Legend.Display = false;
             topSoldProduct.Title.Display = false;
 
@@ -156,6 +156,14 @@ namespace E_CommerceSystem
             admin_orders.Enabled = true;
             admin_dashboard.Enabled = false;
             admin_header.Text = "DASHBOARD";
+
+           
+            best_selling_panel.Controls.Add(this.topSoldProduct);
+            topSoldProduct.Width = best_selling_panel.Width;
+            topSoldProduct.Height = best_selling_panel.Height;
+            topSoldProduct.Animation.Easing = Easing.EaseOutQuart;
+            topSoldProduct.Animation.Duration = 800;
+
 
             MySqlCommand selectBaseStats = new MySqlCommand("SELECT * FROM sales_statistics", conn);
 
@@ -255,15 +263,7 @@ namespace E_CommerceSystem
             dbConfig = new Config();
             conn = dbConfig.getConnection();
 
-            admin_products_panel.Visible = true;
-            admin_dashboard_panel.Visible = false;
-            admin_orders_panel.Visible = false;
-
-
-            admin_dashboard.Enabled = true;
-            admin_orders.Enabled = true;
-            admin_products.Enabled = false;
-            admin_header.Text = "PRODUCTS";
+            showProductPanel(); // Gian888
 
             MySqlCommand getUserImage = new MySqlCommand("SELECT picture_directory FROM users WHERE userID = ('" + UserID + "')", conn);
             try
@@ -285,8 +285,8 @@ namespace E_CommerceSystem
 
                     fetchProductsByCateg();
                 }
-
             }
+
             catch (Exception ex)
             {
                 MessageBox.Show(ex.ToString());
@@ -296,19 +296,10 @@ namespace E_CommerceSystem
         private void searchAllOrders()
         {
             orders_flowlayout.Controls.Clear();
-
-
             dbConfig = new Config();
             conn = dbConfig.getConnection();
 
-            admin_orders_panel.Visible = true;
-            admin_products_panel.Visible = false;
-            admin_dashboard_panel.Visible = false;
-
-            admin_dashboard.Enabled = true;
-            admin_orders.Enabled = false;
-            admin_products.Enabled = true;
-            admin_header.Text = "ORDERS";
+            showOrderPanel();
 
             MySqlCommand selectOrderedProducts = new MySqlCommand("SELECT Region, Province, City, Barangay, StreetName FROM orders WHERE orderStatus = 'PREPARING' OR orderStatus = 'SHIP' OR orderStatus = 'RECEIVE' LIMIT 1", conn);
             MySqlCommand selectFullName = new MySqlCommand("SELECT user_address.FullName, user_address.Email FROM user_address INNER JOIN orders ON user_address.userID = orders.userID WHERE FullName LIKE ('" + orders_searchField.Text + "%')", conn);
@@ -354,19 +345,10 @@ namespace E_CommerceSystem
         private void admin_orders_Click(object sender, EventArgs e)
         {
             orders_flowlayout.Controls.Clear();
-
-
             dbConfig = new Config();
             conn = dbConfig.getConnection();
 
-            admin_orders_panel.Visible = true;
-            admin_products_panel.Visible = false;
-            admin_dashboard_panel.Visible = false;
-
-            admin_dashboard.Enabled = true;
-            admin_orders.Enabled = false;
-            admin_products.Enabled = true;
-            admin_header.Text = "ORDERS";
+            showOrderPanel();
 
             MySqlCommand selectOrderedProducts = new MySqlCommand("SELECT Region, Province, City, Barangay, StreetName FROM orders WHERE orderStatus = 'PREPARING' OR orderStatus = 'SHIP' OR orderStatus = 'RECEIVE' LIMIT 1", conn);
             MySqlCommand selectFullName = new MySqlCommand("SELECT user_address.FullName, user_address.Email FROM user_address INNER JOIN orders ON user_address.userID = orders.userID", conn);
@@ -417,12 +399,10 @@ namespace E_CommerceSystem
             }
 
         }
-
         private void flowLayoutPanel1_Paint(object sender, PaintEventArgs e)
         {
 
         }
-
         private void admin_pic_Click(object sender, EventArgs e)
         {
             if (admin_picPanel.Visible == false)
@@ -441,7 +421,6 @@ namespace E_CommerceSystem
 
         private void adminProfile_Click(object sender, EventArgs e)
         {
-
             this.Close();
             new Profile(UserID).Show();
         }
@@ -454,11 +433,45 @@ namespace E_CommerceSystem
         private void add_product_Click(object sender, EventArgs e)
         {
             new AddProduct().Show();
+            AdminPrompt.showProdPanel = true; // Gian888
         }
 
         private void AdminPrompt_Activated(object sender, EventArgs e)
         {
             admin_dashboard_Click(sender, e);
+
+            if (showProdPanel) // Gian888
+            {
+                showProductPanel();
+                showProdPanel = false;
+            }
+
+            else if (showOrdPanel) // Gian888
+            {
+                showOrderPanel();
+                showOrdPanel = false;
+            }
+        }
+        private void showProductPanel() // Gian888
+        {
+            admin_products_panel.Visible = true;
+            admin_dashboard_panel.Visible = false;
+            admin_orders_panel.Visible = false;
+            admin_dashboard.Enabled = true;
+            admin_orders.Enabled = true;
+            admin_products.Enabled = false;
+            admin_header.Text = "PRODUCTS";
+        }
+        private void showOrderPanel() // Gian888
+        {
+            admin_orders_panel.Visible = true;
+            admin_products_panel.Visible = false;
+            admin_dashboard_panel.Visible = false;
+
+            admin_dashboard.Enabled = true;
+            admin_orders.Enabled = false;
+            admin_products.Enabled = true;
+            admin_header.Text = "ORDERS";
         }
 
         private void category_cmb_SelectedIndexChanged(object sender, EventArgs e)
@@ -466,8 +479,6 @@ namespace E_CommerceSystem
             lblRef.Text = category_cmb.Text;
             fetchProductsByCateg();
         }
-
-
 
         private void orders_searchField_TextChanged(object sender, EventArgs e)
         {
@@ -478,5 +489,6 @@ namespace E_CommerceSystem
         {
 
         }
+
     }
 }
