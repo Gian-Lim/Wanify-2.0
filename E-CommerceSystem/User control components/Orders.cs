@@ -1,4 +1,4 @@
-﻿using MySql.Data.MySqlClient;
+using MySql.Data.MySqlClient;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -69,10 +69,12 @@ namespace E_CommerceSystem
 
         private void open_order_Click(object sender, EventArgs e)
         {
+            AdminPrompt.showOrdPanel = true; // Gian888
+
             dbConfig = new Config();
             conn = dbConfig.getConnection();
             MySqlCommand selectUserIDBasedOnEmail = new MySqlCommand("SELECT * FROM user_address WHERE Email = ('" + Emails + "')", conn);
-
+            
             try
             {
                 conn.Open();
