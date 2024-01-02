@@ -1,4 +1,4 @@
-﻿using ComponentFactory.Krypton.Toolkit;
+using ComponentFactory.Krypton.Toolkit;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -149,16 +149,20 @@ namespace E_CommerceSystem
                 fetchProdId.Read();
 
                 string productID = fetchProdId.GetString("productID");
-                fetchProdId.Close();
+
+                AdminPrompt.showProdPanel = true;
+
 
                 new AddProduct(productID).Show();
+                fetchProdId.Close();
             }
             catch (Exception ex)
             {
                 MessageBox.Show(ex.ToString());
             }
-
+                
         }
+
 
         bool checkProductsInOrders(int productID)
         {
@@ -198,6 +202,8 @@ namespace E_CommerceSystem
             dbConfig = new Config();
             conn = dbConfig.getConnection();
 
+            AdminPrompt.showProdPanel = true;
+
             try
             {
                 conn.Open();
@@ -219,6 +225,7 @@ namespace E_CommerceSystem
                     deleteProduct.ExecuteNonQuery();
 
                     MessageBox.Show("Product Deleted Successfully!");
+                    
                 }
                 else
                 {
