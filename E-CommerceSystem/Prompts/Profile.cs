@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -21,11 +21,53 @@ namespace E_CommerceSystem
         Config dbConfig;
         MySqlConnection conn;
         UserPrompt refreshForm;
+        AdminPrompt adminPrompt;
 
         public Profile()
         {
             InitializeComponent();
             this.FormClosing += Profile_FormClosing;
+        }
+
+        public void CheckUserRole() // Gian888
+        {
+            dbConfig = new Config();
+            conn = dbConfig.getConnection();
+            MySqlCommand checkUser = new MySqlCommand("SELECT * FROM users WHERE userID = ('" + UserID + "')", conn);
+            try
+            {
+                conn.Open();
+                MySqlDataReader fetchUser = checkUser.ExecuteReader();
+                fetchUser.Read();
+
+                if (fetchUser.HasRows)
+                {
+
+                    if (fetchUser.GetString("role").Equals("admin"))
+                    {
+                        UserID = fetchUser.GetString("userID");
+                        new AdminPrompt(UserID).Show();
+                        fetchUser.Close();
+                        this.Hide();
+                    }
+                    else
+                    {
+                        UserID = fetchUser.GetString("userID");
+                        new UserPrompt(UserID).Show();
+                        fetchUser.Close();
+                        this.Hide();
+                    }
+                }
+            }
+            catch (Exception)
+            {
+
+            }
+            finally
+            {
+                conn.Close();
+            }
+
         }
 
         public Profile(string user_id)
@@ -34,20 +76,21 @@ namespace E_CommerceSystem
             this.UserID = user_id;
             this.FormClosing += Profile_FormClosing;
 
+
         }
         public string UserID { get; set; }
 
+
         private void Profile_FormClosed(object sender, FormClosedEventArgs e)
         {
-           refreshForm = new UserPrompt(UserID);
-           refreshForm.UserPrompt_Load(sender, e);
+            refreshForm = new UserPrompt(UserID);
+            refreshForm.UserPrompt_Load(sender, e);
         }
 
         private void Profile_FormClosing(object sender, FormClosingEventArgs e)
         {
             refreshForm = new UserPrompt(UserID);
             refreshForm.UserPrompt_Load(sender, e);
-
         }
 
         private void EditProfile_Load(object sender, EventArgs e)
@@ -246,8 +289,8 @@ namespace E_CommerceSystem
                 required_FieldGender.Visible = true;
                 required_FieldBdate.Visible = true;
                 required_FieldPhone.Visible = true;
-
             }
+
             else
             {
                 required_FieldRecEmail.Visible = false;
@@ -393,12 +436,12 @@ namespace E_CommerceSystem
 
         private void Profile_FormClosed_1(object sender, FormClosedEventArgs e)
         {
-            new UserPrompt(UserID).Show();
+            CheckUserRole(); // Gian888
         }
 
         private void add_address_Click(object sender, EventArgs e)
         {
-           new AddressEdit(UserID).Show();
+            new AddressEdit(UserID).Show();
         }
 
         private void update_username_TextChanged_1(object sender, EventArgs e)
